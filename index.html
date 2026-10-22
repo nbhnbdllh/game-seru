@@ -1,0 +1,1936 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
+  <title>LOVE QUEST — THE ADVENTURE OF US 💗</title>
+  <!-- Tailwind CSS -->
+  <script src="https://cdn.tailwindcss.com"></script>
+  <!-- FontAwesome & Canvas Confetti -->
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" />
+  <script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.6.0/dist/confetti.browser.min.js"></script>
+  <!-- Google Fonts -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Fredoka:wght@400;500;600;700&family=Nunito:wght@400;600;700;800&family=Sacramento&display=swap" rel="stylesheet">
+
+  <script>
+    tailwind.config = {
+      theme: {
+        extend: {
+          colors: {
+            babypink: '#FFF0F5',
+            softpink: '#FFD1DC',
+            dustyrose: '#D8A7B1',
+            hotpink: '#FF69B4',
+            deeprose: '#FF1493',
+            lavender: '#E6E6FA',
+            gold: '#FFD700',
+            warmwhite: '#FFFDF9'
+          },
+          fontFamily: {
+            fredoka: ['Fredoka', 'sans-serif'],
+            nunito: ['Nunito', 'sans-serif'],
+            romantic: ['Sacramento', 'cursive']
+          }
+        }
+      }
+    }
+  </script>
+
+  <style>
+    /* Custom Scrollbar & Aesthetics */
+    body {
+      font-family: 'Nunito', sans-serif;
+      background: linear-gradient(135deg, #fff0f5 0%, #ffd1dc 50%, #e6e6fa 100%);
+      min-height: 100vh;
+      overflow-x: hidden;
+      touch-action: manipulation;
+    }
+
+    .glass-card {
+      background: rgba(255, 255, 255, 0.85);
+      backdrop-filter: blur(12px);
+      -webkit-backdrop-filter: blur(12px);
+      border: 2px solid rgba(255, 255, 255, 0.6);
+      box-shadow: 0 8px 32px 0 rgba(255, 105, 180, 0.15);
+    }
+
+    .glass-card-dark {
+      background: rgba(255, 240, 245, 0.95);
+      backdrop-filter: blur(16px);
+      border: 2px solid rgba(255, 182, 193, 0.5);
+    }
+
+    /* Floating background items */
+    .floating-bg {
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      pointer-events: none;
+      z-index: 0;
+      overflow: hidden;
+    }
+
+    .particle {
+      position: absolute;
+      animation: floatUp 12s infinite linear;
+      opacity: 0.6;
+    }
+
+    @keyframes floatUp {
+      0% { transform: translateY(105vh) rotate(0deg) scale(0.8); opacity: 0; }
+      20% { opacity: 0.7; }
+      90% { opacity: 0.7; }
+      100% { transform: translateY(-10vh) rotate(360deg) scale(1.2); opacity: 0; }
+    }
+
+    /* Custom Animations */
+    .bounce-gentle { animation: bounceGentle 2s infinite ease-in-out; }
+    @keyframes bounceGentle {
+      0%, 100% { transform: translateY(0); }
+      50% { transform: translateY(-8px); }
+    }
+
+    .pulse-glow { animation: pulseGlow 2s infinite ease-in-out; }
+    @keyframes pulseGlow {
+      0%, 100% { box-shadow: 0 0 15px rgba(255, 105, 180, 0.4); transform: scale(1); }
+      50% { box-shadow: 0 0 30px rgba(255, 20, 147, 0.8); transform: scale(1.03); }
+    }
+
+    /* Interactive Envelope */
+    .envelope-wrapper {
+      perspective: 1000px;
+    }
+    .envelope {
+      width: 280px;
+      height: 180px;
+      background: #ffb6c1;
+      position: relative;
+      border-radius: 0 0 15px 15px;
+      cursor: pointer;
+      transition: transform 0.6s ease;
+      transform-style: preserve-3d;
+      box-shadow: 0 10px 25px rgba(0,0,0,0.15);
+    }
+    .envelope .flap {
+      position: absolute;
+      top: 0;
+      left: 0;
+      width: 0;
+      height: 0;
+      border-left: 140px solid transparent;
+      border-right: 140px solid transparent;
+      border-top: 100px solid #ff91a4;
+      transform-origin: top;
+      transition: transform 0.5s ease 0.2s, z-index 0.2s ease 0.2s;
+      z-index: 3;
+    }
+    .envelope .letter {
+      position: absolute;
+      bottom: 10px;
+      left: 15px;
+      width: 250px;
+      height: 150px;
+      background: #fff;
+      border-radius: 10px;
+      padding: 15px;
+      transition: transform 0.6s ease 0.5s;
+      z-index: 2;
+      box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+    }
+    .envelope.open .flap {
+      transform: rotateX(180deg);
+      z-index: 1;
+    }
+    .envelope.open .letter {
+      transform: translateY(-90px);
+      z-index: 4;
+    }
+
+    /* Card Flip Effects */
+    .flip-card {
+      perspective: 1000px;
+    }
+    .flip-card-inner {
+      position: relative;
+      width: 100%;
+      height: 100%;
+      transition: transform 0.6s;
+      transform-style: preserve-3d;
+    }
+    .flip-card.flipped .flip-card-inner {
+      transform: rotateY(180deg);
+    }
+    .flip-card-front, .flip-card-back {
+      position: absolute;
+      width: 100%;
+      height: 100%;
+      backface-visibility: hidden;
+      border-radius: 0.75rem;
+    }
+    .flip-card-back {
+      transform: rotateY(180deg);
+    }
+
+    /* Canvas overlay */
+    #arcadeCanvas, #scratchCanvas {
+      touch-action: none;
+    }
+
+    /* Modal Backdrop */
+    .modal-backdrop {
+      background: rgba(0,0,0,0.5);
+      backdrop-filter: blur(4px);
+    }
+
+    /* Custom Scrollbar for inner cards */
+    ::-webkit-scrollbar {
+      width: 6px;
+    }
+    ::-webkit-scrollbar-track {
+      background: #ffe4e1;
+      border-radius: 10px;
+    }
+    ::-webkit-scrollbar-thumb {
+      background: #ff69b4;
+      border-radius: 10px;
+    }
+  </style>
+</head>
+<body class="text-gray-800 antialiased selection:bg-pink-300">
+
+  <!-- Floating Background Particles -->
+  <div class="floating-bg" id="particleContainer"></div>
+
+  <!-- Audio Controls Header Floating Top-Right -->
+  <div class="fixed top-4 right-4 z-50 flex items-center space-x-2 bg-white/80 backdrop-blur-md px-3 py-1.5 rounded-full shadow-md border border-pink-200">
+    <button id="bgmToggleBtn" onclick="toggleBGM()" class="text-pink-600 hover:text-pink-800 transition text-sm flex items-center space-x-1 font-bold">
+      <i class="fa-solid fa-music text-pink-500" id="bgmIcon"></i>
+      <span id="bgmText" class="hidden sm:inline">Musik: OFF</span>
+    </button>
+    <div class="h-4 w-px bg-pink-200"></div>
+    <button id="sfxToggleBtn" onclick="toggleSFX()" class="text-pink-600 hover:text-pink-800 transition text-sm flex items-center space-x-1 font-bold">
+      <i class="fa-solid fa-volume-high text-pink-500" id="sfxIcon"></i>
+      <span id="sfxText" class="hidden sm:inline">SFX: ON</span>
+    </button>
+  </div>
+
+  <!-- Main Container -->
+  <div class="relative z-10 min-h-screen flex flex-col justify-between max-w-4xl mx-auto px-4 py-6">
+
+    <!-- Header Navigation / Stats Bar (Visible when in game view) -->
+    <header id="appHeader" class="hidden glass-card rounded-2xl p-4 mb-6 shadow-lg border border-white/80">
+      <div class="flex flex-wrap items-center justify-between gap-3">
+        <!-- Brand & Title -->
+        <div class="flex items-center space-x-2 cursor-pointer" onclick="switchView('worldMap')">
+          <div class="w-10 h-10 rounded-full bg-gradient-to-tr from-pink-400 to-rose-500 flex items-center justify-center text-white text-xl shadow-md bounce-gentle">
+            💖
+          </div>
+          <div>
+            <h1 class="font-fredoka text-lg font-bold text-pink-700 leading-tight">LOVE QUEST</h1>
+            <p class="text-xs text-pink-500 font-semibold">Special for <span id="headerPartnerName">Patem Sayangg</span></p>
+          </div>
+        </div>
+
+        <!-- Global Stats Indicators -->
+        <div class="flex items-center space-x-3 text-xs sm:text-sm font-bold">
+          <div class="flex items-center space-x-1 bg-pink-100/80 px-2.5 py-1 rounded-full text-pink-700">
+            <i class="fa-solid fa-star text-amber-400"></i>
+            <span id="statStars">0</span>
+          </div>
+          <div class="flex items-center space-x-1 bg-rose-100/80 px-2.5 py-1 rounded-full text-rose-700">
+            <i class="fa-solid fa-trophy text-amber-500"></i>
+            <span id="statScore">0 PTS</span>
+          </div>
+          <div class="flex items-center space-x-1 bg-purple-100/80 px-2.5 py-1 rounded-full text-purple-700">
+            <i class="fa-solid fa-fire text-orange-500"></i>
+            <span id="statStreak">0 Combo</span>
+          </div>
+        </div>
+
+        <!-- Quick Action Buttons -->
+        <div class="flex items-center space-x-2">
+          <button onclick="switchView('bonusMenu')" class="bg-gradient-to-r from-purple-400 to-pink-400 text-white px-3 py-1.5 rounded-full text-xs font-bold shadow hover:opacity-90 transition">
+            <i class="fa-solid fa-gift mr-1"></i> Bonus Mini-Games
+          </button>
+          <button onclick="confirmResetProgress()" class="bg-gray-200 text-gray-600 hover:text-red-600 p-2 rounded-full text-xs transition" title="Reset Game">
+            <i class="fa-solid fa-rotate-left"></i>
+          </button>
+        </div>
+      </div>
+
+      <!-- Overall Progress Bar -->
+      <div class="mt-3">
+        <div class="flex justify-between text-xs font-semibold text-pink-600 mb-1">
+          <span>Progres Petualangan Cinta</span>
+          <span id="progressPercent">0% Completed</span>
+        </div>
+        <div class="w-full bg-pink-100 rounded-full h-2.5 overflow-hidden">
+          <div id="progressBarFill" class="bg-gradient-to-r from-pink-400 to-rose-500 h-2.5 rounded-full transition-all duration-500" style="width: 0%"></div>
+        </div>
+      </div>
+    </header>
+
+    <!-- VIEWS SECTION -->
+    <main id="mainContent" class="flex-grow flex flex-col justify-center">
+
+      <!-- 1. INTRO SCREEN -->
+      <section id="viewIntro" class="flex flex-col items-center justify-center text-center py-8">
+        <div class="glass-card rounded-3xl p-6 sm:p-10 max-w-lg w-full shadow-2xl relative overflow-hidden border-2 border-pink-200">
+          <div class="absolute -top-10 -right-10 w-28 h-28 bg-pink-300/30 rounded-full blur-xl"></div>
+          
+          <span class="inline-block px-4 py-1.5 bg-pink-100 text-pink-600 font-bold text-xs sm:text-sm rounded-full mb-4 tracking-wide shadow-sm">
+            ✨ A little adventure, made just for you ✨
+          </span>
+
+          <h1 class="font-romantic text-5xl sm:text-6xl text-rose-600 font-bold mb-2 drop-shadow-sm">
+            Patem Sayangg
+          </h1>
+          <p class="font-fredoka text-gray-600 text-sm sm:text-base mb-6">
+            Selamat datang di dunia petualangan rahasia cinta kita! 💌
+          </p>
+
+          <!-- Interactive Envelope -->
+          <div class="envelope-wrapper flex justify-center my-6">
+            <div class="envelope" id="introEnvelope" onclick="openIntroEnvelope()">
+              <div class="flap"></div>
+              <div class="letter text-xs text-gray-700 text-left flex flex-col justify-between">
+                <div>
+                  <p class="font-bold text-rose-500 mb-1">Hai Sayanggg! 💕</p>
+                  <p class="italic text-[11px] leading-snug">
+                    Aku buatkan website game khusus ini untuk kamu. Setiap level berisi kenangan, tawa, dan rasa sayangku!
+                  </p>
+                </div>
+                <p class="text-right font-romantic text-base text-rose-600 font-bold mt-1">- Dari Pacarmu 💖</p>
+              </div>
+            </div>
+          </div>
+
+          <p class="text-xs text-pink-500 font-semibold mb-6 italic" id="envelopeHint">
+            (Klik amplop di atas untuk membuka pesan rahasia!)
+          </p>
+
+          <!-- Action Buttons -->
+          <div class="space-y-3">
+            <button onclick="startQuest()" class="w-full bg-gradient-to-r from-rose-400 via-pink-500 to-rose-600 text-white font-fredoka font-bold py-3.5 px-6 rounded-2xl shadow-lg hover:shadow-pink-300/50 hover:scale-[1.02] active:scale-95 transition duration-200 pulse-glow text-base sm:text-lg">
+              MULAI PETUALANGAN KITA 💗
+            </button>
+            
+            <button onclick="skipIntro()" class="text-xs text-gray-400 hover:text-pink-600 underline font-semibold transition">
+              Lewati Intro Langsung ke Peta Peta Game
+            </button>
+          </div>
+        </div>
+      </section>
+
+      <!-- 2. WORLD MAP SCREEN -->
+      <section id="viewWorldMap" class="hidden py-4">
+        <div class="glass-card rounded-3xl p-6 shadow-xl mb-6">
+          <div class="text-center mb-6">
+            <h2 class="font-fredoka text-2xl sm:text-3xl text-rose-600 font-bold">Peta Dunia Love Quest 🗺️</h2>
+            <p class="text-xs sm:text-sm text-gray-600">Selesaikan setiap level untuk membuka gerbang hadiah cinta berikutnya!</p>
+          </div>
+
+          <!-- Badges / Achievements Showcase -->
+          <div class="bg-pink-50/80 rounded-2xl p-3 mb-6 border border-pink-200">
+            <h3 class="text-xs font-bold text-pink-700 uppercase tracking-wider mb-2 flex items-center justify-between">
+              <span><i class="fa-solid fa-award mr-1"></i> Lencana Pencapaian Kita</span>
+              <span id="badgeCountText" class="text-[10px] bg-pink-200 px-2 py-0.5 rounded-full">0/5 Opened</span>
+            </h3>
+            <div class="grid grid-cols-5 gap-2 text-center" id="badgesContainer">
+              <!-- Dynamically populated -->
+            </div>
+          </div>
+
+          <!-- Quest Level Nodes Grid -->
+          <div class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-4" id="levelGrid">
+            <!-- Dynamically populated from CONFIG -->
+          </div>
+        </div>
+      </section>
+
+      <!-- 3. GAME CONTAINER (Dynamic Mini-Game View) -->
+      <section id="viewGameContainer" class="hidden py-4">
+        <div class="glass-card rounded-3xl p-5 sm:p-7 shadow-2xl relative border-2 border-pink-200">
+          
+          <!-- Level Header -->
+          <div class="flex items-center justify-between border-b border-pink-100 pb-3 mb-4">
+            <button onclick="switchView('worldMap')" class="bg-pink-100 hover:bg-pink-200 text-pink-700 px-3 py-1.5 rounded-xl text-xs font-bold transition flex items-center">
+              <i class="fa-solid fa-arrow-left mr-1.5"></i> Kembali ke Peta
+            </button>
+            <div class="text-center">
+              <span id="gameLevelBadge" class="text-[10px] uppercase tracking-widest bg-pink-200 text-pink-800 font-bold px-2.5 py-0.5 rounded-full">Level 1</span>
+              <h2 id="gameTitle" class="font-fredoka text-lg sm:text-xl text-rose-600 font-bold leading-tight">Judul Game</h2>
+            </div>
+            <button onclick="restartCurrentLevel()" class="bg-purple-100 hover:bg-purple-200 text-purple-700 px-3 py-1.5 rounded-xl text-xs font-bold transition">
+              <i class="fa-solid fa-rotate-right mr-1"></i> Ulang
+            </button>
+          </div>
+
+          <!-- Dynamic Game Display Stage -->
+          <div id="gameStage" class="min-h-[320px] flex flex-col justify-center items-center">
+            <!-- Level HTML will be rendered here dynamically -->
+          </div>
+
+        </div>
+      </section>
+
+      <!-- 4. BONUS MINI-GAMES MENU -->
+      <section id="viewBonusMenu" class="hidden py-4">
+        <div class="glass-card rounded-3xl p-6 shadow-xl">
+          <div class="flex items-center justify-between mb-6">
+            <button onclick="switchView('worldMap')" class="bg-pink-100 hover:bg-pink-200 text-pink-700 px-3 py-1.5 rounded-xl text-xs font-bold transition">
+              <i class="fa-solid fa-arrow-left mr-1"></i> Kembali ke Peta
+            </button>
+            <h2 class="font-fredoka text-xl sm:text-2xl text-rose-600 font-bold">Mini-Games Bonus 🎁</h2>
+            <div class="w-16"></div>
+          </div>
+
+          <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+            <!-- Bonus 1: Spin Wheel -->
+            <div onclick="launchBonusGame('wheel')" class="bg-gradient-to-br from-pink-50 to-purple-50 hover:from-pink-100 hover:to-purple-100 border-2 border-pink-200 rounded-2xl p-4 cursor-pointer transition transform hover:-translate-y-1 shadow-sm flex items-center space-x-4">
+              <div class="text-4xl bg-white p-3 rounded-2xl shadow-inner text-pink-500">🎡</div>
+              <div>
+                <h3 class="font-fredoka font-bold text-gray-800">Spin the Love Wheel</h3>
+                <p class="text-xs text-gray-500">Putar roda keberuntungan cinta untuk tantangan romantis!</p>
+              </div>
+            </div>
+
+            <!-- Bonus 2: Scratch Card -->
+            <div onclick="launchBonusGame('scratch')" class="bg-gradient-to-br from-pink-50 to-purple-50 hover:from-pink-100 hover:to-purple-100 border-2 border-pink-200 rounded-2xl p-4 cursor-pointer transition transform hover:-translate-y-1 shadow-sm flex items-center space-x-4">
+              <div class="text-4xl bg-white p-3 rounded-2xl shadow-inner text-pink-500">🎟️</div>
+              <div>
+                <h3 class="font-fredoka font-bold text-gray-800">Scratch Card Rahasia</h3>
+                <p class="text-xs text-gray-500">Gores kartu untuk mengintip pesan romantis tersembunyi!</p>
+              </div>
+            </div>
+
+            <!-- Bonus 3: Tap Hearts -->
+            <div onclick="launchBonusGame('tap')" class="bg-gradient-to-br from-pink-50 to-purple-50 hover:from-pink-100 hover:to-purple-100 border-2 border-pink-200 rounded-2xl p-4 cursor-pointer transition transform hover:-translate-y-1 shadow-sm flex items-center space-x-4">
+              <div class="text-4xl bg-white p-3 rounded-2xl shadow-inner text-pink-500">👆</div>
+              <div>
+                <h3 class="font-fredoka font-bold text-gray-800">Tap the Hearts!</h3>
+                <p class="text-xs text-gray-500">Uji kecepatan jari mengetuk cinta sebanyak mungkin!</p>
+              </div>
+            </div>
+
+            <!-- Bonus 4: Daily Love Message -->
+            <div onclick="launchBonusGame('daily')" class="bg-gradient-to-br from-pink-50 to-purple-50 hover:from-pink-100 hover:to-purple-100 border-2 border-pink-200 rounded-2xl p-4 cursor-pointer transition transform hover:-translate-y-1 shadow-sm flex items-center space-x-4">
+              <div class="text-4xl bg-white p-3 rounded-2xl shadow-inner text-pink-500">💌</div>
+              <div>
+                <h3 class="font-fredoka font-bold text-gray-800">Daily Love Note</h3>
+                <p class="text-xs text-gray-500">Kutipan manis hari ini khusus untuk menyemangatimu!</p>
+              </div>
+            </div>
+          </div>
+        </div>
+      </section>
+
+    </main>
+
+    <!-- Footer -->
+    <footer class="mt-8 text-center text-xs text-gray-500 font-medium">
+      Dibuat dengan segenap cinta 💖 khusus untuk <span class="text-rose-600 font-bold">Patem Sayangg</span> • Love Quest &copy; 2026
+    </footer>
+
+  </div>
+
+  <!-- GENERIC MODAL NOTIFICATION / LEVEL SUCCESS POPUP -->
+  <div id="gameModal" class="fixed inset-0 z-50 flex items-center justify-center p-4 modal-backdrop hidden">
+    <div class="glass-card-dark rounded-3xl p-6 max-w-sm w-full text-center shadow-2xl border-2 border-pink-300 transform transition-all scale-95" id="modalCard">
+      <div id="modalIcon" class="text-5xl mb-3 bounce-gentle">🎉</div>
+      <h3 id="modalTitle" class="font-fredoka text-2xl font-bold text-rose-600 mb-2">Hebat Sayang!</h3>
+      <p id="modalBody" class="text-xs sm:text-sm text-gray-700 mb-6">Kamu berhasil menyelesaikan tantangan ini!</p>
+      
+      <div id="modalStats" class="bg-pink-100/80 rounded-2xl p-3 mb-6 text-xs text-pink-800 font-bold flex justify-around">
+        <div>⭐ +<span id="modalStars">3</span> Bintang</div>
+        <div>🏆 +<span id="modalScore">100</span> Poin</div>
+      </div>
+
+      <div class="space-y-2" id="modalActions">
+        <button onclick="closeModalAndNext()" class="w-full bg-gradient-to-r from-pink-500 to-rose-500 text-white font-bold py-2.5 px-4 rounded-xl shadow hover:opacity-90 transition">
+          Lanjut ke Level Berikutnya 🚀
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <!-- MAIN GAME LOGIC SCRIPT -->
+  <script>
+    /* ==========================================================================
+       1. CENTRALIZED CONFIGURATION (EASY PERSONALIZATION)
+       ========================================================================== */
+    const CONFIG = {
+      partnerName: "Patem Sayangg",
+      authorName: "Aku",
+      secretPasscode: "1234", // Used in Level 11
+
+      // Love Letter content for Level 12
+      finalLoveLetter: `Halo Patem Sayangg ku tersayang 💗,\n\nJika kamu membaca ini, artinya kamu telah menyelesaikan seluruh petualangan dalam Love Quest ini! Terima kasih ya sudah mau meluangkan waktu memainkan game kecil buatan aku ini.\n\nSetiap level, kuis, dan teka-teki di dalam game ini aku susun sambil mengingat senyumanmu, kebaikanmu, dan betapa beruntungnya aku memiliki kamu di hidupku. Kamu bukan sekadar pacar, tapi juga sahabat terbaik dan alasan aku tersenyum setiap hari.\n\nTetaplah jadi Patem Sayangg yang imut, lucu, dan penuh kehangatan ya. Apapun tantangan yang kita hadapi nanti, mari kita lewati bersama dengan cinta dan komunikasi yang baik.\n\nI love you to the moon and back! Forever & always 💖✨`,
+
+      // Photo Gallery URLs/placeholders for Level 12
+      galleryPhotos: [
+        { title: "Momen Manis Pertama", emoji: "📸", desc: "Awal dari semua kebahagiaan kita." },
+        { title: "Kencan Favorit", emoji: "🧋", desc: "Saat minum boba bersama sambil tertawa." },
+        { title: "Senyuman Terindah", emoji: "🌸", desc: "Senyummu yang selalu bikin hariku cerah." },
+        { title: "Janji Bersama", emoji: "💍", desc: "Selalu berdampingan sampai kapanpun." }
+      ],
+
+      // 12 Levels Metadata
+      levels: [
+        { id: 1, title: "Love Quiz", icon: "❓", desc: "Seberapa kenal kamu sama hubungan kita?", points: 150 },
+        { id: 2, title: "Memory Match", icon: "🃏", desc: "Temukan pasangan kenangan tersembunyi!", points: 200 },
+        { id: 3, title: "Heart Puzzle", icon: "🧩", desc: "Susun kembali kepingan hati yang acak!", points: 250 },
+        { id: 4, title: "Catch the Hearts", icon: "🧺", desc: "Tangkap hati yang berjatuhan sebanyak-banyaknya!", points: 300 },
+        { id: 5, title: "Find My Love", icon: "🔍", desc: "Cari benda-benda cinta di dalam kamar romantis!", points: 200 },
+        { id: 6, title: "Guess the Emoji", icon: "💡", desc: "Tebak arti kombinasi emoji cinta!", points: 180 },
+        { id: 7, title: "Speed Quiz", icon: "⚡", desc: "Jawab kuis cepat sebelum waktu habis!", points: 220 },
+        { id: 8, title: "Word Scramble", icon: "🔤", desc: "Susun huruf acak menjadi kata romantis!", points: 190 },
+        { id: 9, title: "Truth or Love", icon: "💬", desc: "Pilihan santai & jawaban penuh perhatian!", points: 150 },
+        { id: 10, title: "Choose Our Story", icon: "📖", desc: "Tentukan alur kencan impian kita!", points: 200 },
+        { id: 11, title: "Secret Code", icon: "🔐", desc: "Pecahkan teka-teki kode rahasia cinta!", points: 250 },
+        { id: 12, title: "The Final Treasure", icon: "👑", desc: "Buka peti hadiah rahasia & sertifikat spesial!", points: 500 }
+      ],
+
+      // Level 1: Quiz Questions
+      quizQuestions: [
+        { q: "Siapa nama panggilannya yang paling imut?", options: ["Patem Sayangg", "Si Lucu", "Tuan Putri", "Semua Benar"], a: 3, trivia: "Benar sekali! Bagi aku, semua panggilan manis itu cocok buat kamu!" },
+        { q: "Apa hal yang paling bikin bahagia kalau lagi bareng?", options: ["Jalan-jalan sore", "Makan makanan enak", "Ngobrol santai", "Semua momen bersamamu"], a: 3, trivia: "Setiap detik bersamamu selalu terasa istimewa 💕" },
+        { q: "Kalau pacar kamu lagi cemberut, obat paling ampuh adalah...", options: ["Pelukan hangat", "Dibelikan makanan kesukaan", "Didengarkan ceritanya", "Ketiganya sekaligus!"], a: 3, trivia: "Semua perhatian itu wajib diberikan biar kamu tersenyum lagi!" },
+        { q: "Warna yang paling memberikan kesan hangat & manis adalah?", options: ["Baby Pink & Lavender", "Hitam", "Hijau Tua", "Cokelat"], a: 0, trivia: "Sama seperti tema game ini yang penuh warna cerah & pink!" },
+        { q: "Benar atau Salah: Pacar kamu selalu memikirkan kamu setiap hari?", options: ["Benar 100%", "Salah"], a: 0, trivia: "Gak ada hari tanpa mikirin kamu, Patem Sayangg!" },
+        { q: "Siapa yang paling suka melucu saat ngobrol?", options: ["Kamu", "Aku", "Dua-duanya seru!", "Kucing tetangga"], a: 2, trivia: "Kalau kita udah gabung, pasti suasana jadi seru banget!" },
+        { q: "Apa senjata paling ampuh untuk menyelesaikan salah paham kecil?", options: ["Komunikasi jujur & lembut", "Diam-diaman", "Kabur", "Main game"], a: 0, trivia: "Komunikasi dengan hati selalu bikin kita makin erat." },
+        { q: "Berapa besar rasa sayang yang ada di game ini?", options: ["Sedikit", "Sedang", "Banyak", "Tak Terhingga 🌌"], a: 3, trivia: "Tak terhingga dan bakal terus bertambah setiap hari!" },
+        { q: "Apa minuman paling segar pas kencan?", options: ["Boba / Esteh Manis", "Air Garam", "Jus Pahit", "Minyak Kayu Putih"], a: 0, trivia: "Minuman manis bikin suasana makin manis!" },
+        { q: "Ketika Patem Sayangg capek, hal pertama yang ingin aku lakukan adalah...", options: ["Nge-cheer up & kasih nyamannya", "Biarin aja", "Disuruh lari marathon", "Diomelin"], a: 0, trivia: "Aku bakal selalu ada buat menyemangati kamu!" },
+        { q: "Gaya kencan paling santai tapi berkesan?", options: ["Nonton film & cuddle", "Naik gunung 1000m", "Ke luar angkasa", "Beli kapal selam"], a: 0, trivia: "Simple, santai, tapi penuh kehangatan!" },
+        { q: "Cita-cita hubungan kita ke depannya adalah...", options: ["Makin kompak & bahagia", "Saling mendukung impian", "Saling menjaga", "Semuanya benar!"], a: 3, trivia: "Aamiin! Semoga kita selalu bersama menggapai impian!" },
+        { q: "Apa panggilan khusus di judul website ini?", options: ["Patem Sayangg", "Adinda", "Siti", "Bunga"], a: 0, trivia: "Yup! Patem Sayangg adalah satu-satunya bintang utama di sini!" },
+        { q: "Benar atau Salah: Kamu adalah orang favorit pacarmu?", options: ["Sangat Benar! 💖", "Salah"], a: 0, trivia: "You are truly my most favorite person in the world!" },
+        { q: "Siap melanjutkan petualangan ke level berikutnya?", options: ["Gass Siap Banget! 🚀", "Nanti Dulu"], a: 0, trivia: "Yuk lanjut ke permainan berikutnya!" }
+      ],
+
+      // Level 6: Emoji Puzzles
+      emojiPuzzles: [
+        { emojis: "💌 + 💗", answer: "pesan cinta", hint: "Surat dengan perasaan sayang" },
+        { emojis: "🌙 + ⭐", answer: "malam berbintang", hint: "Suasana indah waktu malam" },
+        { emojis: "🎁 + 💖", answer: "hadiah cinta", hint: "Sesuatu yang diberikan dengan kasih" },
+        { emojis: "🍿 + 🎬", answer: "nonton film", hint: "Aktivitas seru pas kencan" },
+        { emojis: "🧋 + 🌸", answer: "boba manis", hint: "Minuman kekinian favorit" },
+        { emojis: "👑 + 👸", answer: "ratu cinta", hint: "Sebutan untuk orang tersayang" },
+        { emojis: "🚗 + 🛣️", answer: "jalan jalan", hint: "Jalan-jalan sore naik motor/mobil" },
+        { emojis: "🧸 + 😴", answer: "boneka tidur", hint: "Teman tidur yang empuk" },
+        { emojis: "📸 + 🖼️", answer: "foto kenangan", hint: "Mengabadikan momen manis" },
+        { emojis: "🍰 + ☕", answer: "kue manis", hint: "Teman minum teh/kopi" },
+        { emojis: "🎧 + 🎶", answer: "dengar musik", hint: "Mendengarkan lagu romantis bersama" },
+        { emojis: "👩‍❤️‍👨 + 💍", answer: "janji suci", hint: "Komitmen hubungan berdua" }
+      ],
+
+      // Level 7: Speed Quiz
+      speedQuizData: [
+        { q: "Siapa nama pacarmu?", a: ["Aku", "Budi", "Joko"], correct: 0 },
+        { q: "Apakah Patem Sayangg cantik/ganteng?", a: ["Banget!", "Biasa", "Enggak"], correct: 0 },
+        { q: "Warna utama tema game ini?", a: ["Pink", "Hitam", "Hijau"], correct: 0 },
+        { q: "1 + 1 dalam hubungan kita?", a: ["Satu Hati 💖", "Dua", "Tiga"], correct: 0 },
+        { q: "Makanan darurat pas lapar?", a: ["Mie / Snack Favorit", "Batu", "Kayu"], correct: 0 },
+        { q: "Senyum siapa yang paling manis?", a: ["Patem Sayangg", "Artis TV", "Orang Lain"], correct: 0 },
+        { q: "Kalau kangen harus apa?", a: ["Kabarin & VC", "Tidur aja", "Marah-marah"], correct: 0 },
+        { q: "Berapa bintang untuk Patem Sayangg?", a: ["5 Bintang ⭐", "1 Bintang", "0"], correct: 0 },
+        { q: "Apa judul game ini?", a: ["Love Quest", "Super Mario", "GTA"], correct: 0 },
+        { q: "Sayang gak sama aku?", a: ["Sayang Banget! 💕", "Gak Tahu", "Biasa"], correct: 0 }
+      ],
+
+      // Level 8: Word Scramble
+      scrambleWords: [
+        { word: "SAYANG", hint: "Ungkapan perasaan kasih" },
+        { word: "PELUKAN", hint: "Kehangatan saat bertemu" },
+        { word: "CINTA", hint: "Perasaan mendalam" },
+        { word: "KENANGAN", hint: "Momen indah yang diingat" },
+        { word: "BAHAGIA", hint: "Perasaan gembira" },
+        { word: "SETIA", hint: "Selalu berada di sisi" },
+        { word: "PERHATIAN", hint: "Saling peduli satu sama lain" },
+        { word: "SENYUMAN", hint: "Bikin wajah tambah manis" },
+        { word: "KANGEN", hint: "Ingin segera bertemu" },
+        { word: "IMUT", hint: "Sifat Patem Sayangg yang bikin gemes" }
+      ]
+    };
+
+    /* ==========================================================================
+       2. GLOBAL APP STATE & LOCALSTORAGE PERSISTENCE
+       ========================================================================== */
+    let gameState = {
+      score: 0,
+      stars: 0,
+      completedLevels: [], // array of level IDs
+      streak: 0,
+      unlockedBadges: [],
+      currentLevelId: 1
+    };
+
+    // Load state from localStorage
+    function loadState() {
+      try {
+        const saved = localStorage.getItem('LOVE_QUEST_SAVE');
+        if (saved) {
+          const parsed = JSON.parse(saved);
+          gameState = { ...gameState, ...parsed };
+        }
+      } catch(e) {
+        console.warn("localStorage state not accessible:", e);
+      }
+      updateGlobalUI();
+    }
+
+    // Save state to localStorage
+    function saveState() {
+      try {
+        localStorage.setItem('LOVE_QUEST_SAVE', JSON.stringify(gameState));
+      } catch(e) {
+        console.warn("Could not save to localStorage:", e);
+      }
+      updateGlobalUI();
+    }
+
+    // Reset progress confirm
+    function confirmResetProgress() {
+      if (confirm("Apakah kamu yakin ingin mengulang petualangan dari awal? Semua poin & level akan di-reset.")) {
+        localStorage.removeItem('LOVE_QUEST_SAVE');
+        gameState = {
+          score: 0,
+          stars: 0,
+          completedLevels: [],
+          streak: 0,
+          unlockedBadges: [],
+          currentLevelId: 1
+        };
+        saveState();
+        switchView('worldMap');
+        playSFX('click');
+      }
+    }
+
+    /* ==========================================================================
+       3. AUDIO SYNTHESIZER ENGINE (Web Audio API - No External Sound Files Needed!)
+       ========================================================================== */
+    let audioCtx = null;
+    let bgmOscillator = null;
+    let isBGMOn = false;
+    let isSFXOn = true;
+
+    function initAudio() {
+      if (!audioCtx) {
+        const AudioContext = window.AudioContext || window.webkitAudioContext;
+        if (AudioContext) audioCtx = new AudioContext();
+      }
+    }
+
+    function toggleBGM() {
+      initAudio();
+      isBGMOn = !isBGMOn;
+      const bgmText = document.getElementById('bgmText');
+      const bgmIcon = document.getElementById('bgmIcon');
+      
+      if (isBGMOn) {
+        bgmText.innerText = "Musik: ON";
+        bgmIcon.className = "fa-solid fa-music text-rose-600 animate-spin";
+        startMelodyLoop();
+      } else {
+        bgmText.innerText = "Musik: OFF";
+        bgmIcon.className = "fa-solid fa-music text-pink-400";
+        stopMelodyLoop();
+      }
+    }
+
+    function toggleSFX() {
+      isSFXOn = !isSFXOn;
+      document.getElementById('sfxText').innerText = isSFXOn ? "SFX: ON" : "SFX: OFF";
+      document.getElementById('sfxIcon').className = isSFXOn ? "fa-solid fa-volume-high text-pink-500" : "fa-solid fa-volume-xmark text-gray-400";
+    }
+
+    // Cute retro chord sound synth
+    function playSFX(type) {
+      if (!isSFXOn) return;
+      initAudio();
+      if (!audioCtx) return;
+
+      const now = audioCtx.currentTime;
+      const osc = audioCtx.createOscillator();
+      const gain = audioCtx.createGain();
+      osc.connect(gain);
+      gain.connect(audioCtx.destination);
+
+      if (type === 'click') {
+        osc.type = 'sine';
+        osc.frequency.setValueAtTime(400, now);
+        osc.frequency.exponentialRampToValueAtTime(800, now + 0.08);
+        gain.gain.setValueAtTime(0.15, now);
+        gain.gain.exponentialRampToValueAtTime(0.01, now + 0.08);
+        osc.start(now);
+        osc.stop(now + 0.08);
+      } else if (type === 'correct') {
+        osc.type = 'triangle';
+        osc.frequency.setValueAtTime(523.25, now); // C5
+        osc.frequency.setValueAtTime(659.25, now + 0.08); // E5
+        osc.frequency.setValueAtTime(783.99, now + 0.16); // G5
+        gain.gain.setValueAtTime(0.2, now);
+        gain.gain.exponentialRampToValueAtTime(0.01, now + 0.3);
+        osc.start(now);
+        osc.stop(now + 0.3);
+      } else if (type === 'wrong') {
+        osc.type = 'sawtooth';
+        osc.frequency.setValueAtTime(220, now);
+        osc.frequency.setValueAtTime(180, now + 0.12);
+        gain.gain.setValueAtTime(0.2, now);
+        gain.gain.exponentialRampToValueAtTime(0.01, now + 0.25);
+        osc.start(now);
+        osc.stop(now + 0.25);
+      } else if (type === 'win') {
+        // Happy fan-fare notes
+        const notes = [523.25, 659.25, 783.99, 1046.50];
+        notes.forEach((freq, idx) => {
+          const o = audioCtx.createOscillator();
+          const g = audioCtx.createGain();
+          o.connect(g);
+          g.connect(audioCtx.destination);
+          o.type = 'sine';
+          o.frequency.setValueAtTime(freq, now + idx * 0.1);
+          g.gain.setValueAtTime(0.2, now + idx * 0.1);
+          g.gain.exponentialRampToValueAtTime(0.01, now + idx * 0.1 + 0.2);
+          o.start(now + idx * 0.1);
+          o.stop(now + idx * 0.1 + 0.2);
+        });
+      }
+    }
+
+    let bgmTimer = null;
+    function startMelodyLoop() {
+      if (!isBGMOn || bgmTimer) return;
+      const notes = [261.63, 329.63, 392.00, 523.25, 392.00, 329.63];
+      let step = 0;
+      
+      bgmTimer = setInterval(() => {
+        if (!isBGMOn || !audioCtx) return;
+        const now = audioCtx.currentTime;
+        const osc = audioCtx.createOscillator();
+        const gain = audioCtx.createGain();
+        osc.connect(gain);
+        gain.connect(audioCtx.destination);
+        osc.type = 'sine';
+        osc.frequency.setValueAtTime(notes[step % notes.length], now);
+        gain.gain.setValueAtTime(0.03, now);
+        gain.gain.exponentialRampToValueAtTime(0.001, now + 0.4);
+        osc.start(now);
+        osc.stop(now + 0.4);
+        step++;
+      }, 500);
+    }
+
+    function stopMelodyLoop() {
+      if (bgmTimer) {
+        clearInterval(bgmTimer);
+        bgmTimer = null;
+      }
+    }
+
+    /* ==========================================================================
+       4. UI NAVIGATION & VIEW SWITCHING
+       ========================================================================== */
+    function switchView(viewName) {
+      playSFX('click');
+      document.getElementById('viewIntro').classList.add('hidden');
+      document.getElementById('viewWorldMap').classList.add('hidden');
+      document.getElementById('viewGameContainer').classList.add('hidden');
+      document.getElementById('viewBonusMenu').classList.add('hidden');
+
+      const appHeader = document.getElementById('appHeader');
+
+      if (viewName === 'intro') {
+        document.getElementById('viewIntro').classList.remove('hidden');
+        appHeader.classList.add('hidden');
+      } else if (viewName === 'worldMap') {
+        document.getElementById('viewWorldMap').classList.remove('hidden');
+        appHeader.classList.remove('hidden');
+        renderWorldMap();
+      } else if (viewName === 'game') {
+        document.getElementById('viewGameContainer').classList.remove('hidden');
+        appHeader.classList.remove('hidden');
+      } else if (viewName === 'bonusMenu') {
+        document.getElementById('viewBonusMenu').classList.remove('hidden');
+        appHeader.classList.remove('hidden');
+      }
+    }
+
+    function updateGlobalUI() {
+      document.getElementById('headerPartnerName').innerText = CONFIG.partnerName;
+      document.getElementById('statStars').innerText = gameState.stars;
+      document.getElementById('statScore').innerText = `${gameState.score} PTS`;
+      document.getElementById('statStreak').innerText = `${gameState.streak} Combo`;
+
+      // Calculate overall progress
+      const totalLevels = CONFIG.levels.length;
+      const completedCount = gameState.completedLevels.length;
+      const percent = Math.min(100, Math.round((completedCount / totalLevels) * 100));
+
+      document.getElementById('progressPercent').innerText = `${percent}% Selesai`;
+      document.getElementById('progressBarFill').style.width = `${percent}%`;
+
+      // Check badges
+      checkBadges();
+    }
+
+    function checkBadges() {
+      const badges = [
+        { id: 1, name: "First Heart", icon: "❤️", cond: () => gameState.completedLevels.length >= 1, desc: "Selesaikan level pertama" },
+        { id: 2, name: "Memory Master", icon: "🧠", cond: () => gameState.completedLevels.includes(2), desc: "Selesaikan Memory Match" },
+        { id: 3, name: "Quiz Champion", icon: "🏆", cond: () => gameState.streak >= 5, desc: "Dapatkan 5 combo berturut-turut" },
+        { id: 4, name: "Arcade Hero", icon: "🕹️", cond: () => gameState.completedLevels.includes(4), desc: "Tangkap hati di Catch Hearts" },
+        { id: 5, name: "Love Quest Winner", icon: "👑", cond: () => gameState.completedLevels.includes(12), desc: "Buka peti hadiah rahasia" }
+      ];
+
+      let opened = 0;
+      const container = document.getElementById('badgesContainer');
+      if (!container) return;
+      container.innerHTML = '';
+
+      badges.forEach(b => {
+        const isUnlocked = b.cond();
+        if (isUnlocked) opened++;
+        
+        container.innerHTML += `
+          <div class="flex flex-col items-center p-2 rounded-xl ${isUnlocked ? 'bg-white shadow-sm border border-pink-300' : 'bg-gray-100 opacity-40'}" title="${b.desc}">
+            <span class="text-2xl mb-1">${b.icon}</span>
+            <span class="text-[10px] font-bold ${isUnlocked ? 'text-pink-700' : 'text-gray-500'} leading-tight">${b.name}</span>
+          </div>
+        `;
+      });
+
+      document.getElementById('badgeCountText').innerText = `${opened}/${badges.length} Opened`;
+    }
+
+    /* ==========================================================================
+       5. INTRO SCREEN HANDLERS
+       ========================================================================== */
+    function openIntroEnvelope() {
+      const envelope = document.getElementById('introEnvelope');
+      envelope.classList.toggle('open');
+      document.getElementById('envelopeHint').innerText = "Surat terbuka! Tekan tombol di bawah untuk mulai 💗";
+      playSFX('correct');
+    }
+
+    function startQuest() {
+      initAudio();
+      playSFX('win');
+      switchView('worldMap');
+    }
+
+    function skipIntro() {
+      initAudio();
+      switchView('worldMap');
+    }
+
+    /* ==========================================================================
+       6. WORLD MAP RENDERER
+       ========================================================================== */
+    function renderWorldMap() {
+      const grid = document.getElementById('levelGrid');
+      grid.innerHTML = '';
+
+      CONFIG.levels.forEach((lvl, idx) => {
+        const isCompleted = gameState.completedLevels.includes(lvl.id);
+        // Level is unlocked if it's Level 1 OR the previous level is completed
+        const isUnlocked = lvl.id === 1 || gameState.completedLevels.includes(lvl.id - 1);
+
+        let cardClass = "";
+        let statusBadge = "";
+
+        if (isCompleted) {
+          cardClass = "bg-gradient-to-br from-pink-100 to-rose-100 border-2 border-pink-400 shadow-md hover:scale-[1.02]";
+          statusBadge = `<span class="bg-emerald-500 text-white text-[10px] font-bold px-2 py-0.5 rounded-full"><i class="fa-solid fa-check mr-1"></i>Selesai</span>`;
+        } else if (isUnlocked) {
+          cardClass = "bg-white border-2 border-pink-300 shadow-lg hover:scale-[1.02] pulse-glow";
+          statusBadge = `<span class="bg-pink-500 text-white text-[10px] font-bold px-2 py-0.5 rounded-full animate-pulse">Tersedia</span>`;
+        } else {
+          cardClass = "bg-gray-100/80 border-2 border-gray-300 opacity-60 cursor-not-allowed";
+          statusBadge = `<span class="bg-gray-400 text-white text-[10px] font-bold px-2 py-0.5 rounded-full"><i class="fa-solid fa-lock mr-1"></i>Terkunci</span>`;
+        }
+
+        const cardHTML = `
+          <div onclick="${isUnlocked ? `launchLevel(${lvl.id})` : `alert('Selesaikan level sebelumnya terlebih dahulu ya sayang!')`}" 
+               class="rounded-2xl p-4 transition duration-200 cursor-pointer flex flex-col justify-between ${cardClass}">
+            <div class="flex items-start justify-between mb-2">
+              <span class="text-3xl bg-pink-50 p-2 rounded-xl shadow-inner">${lvl.icon}</span>
+              ${statusBadge}
+            </div>
+            <div>
+              <span class="text-[11px] font-bold text-pink-500 uppercase tracking-wider">Level ${lvl.id}</span>
+              <h3 class="font-fredoka text-base font-bold text-gray-800 leading-snug">${lvl.title}</h3>
+              <p class="text-xs text-gray-500 mt-1 line-clamp-2">${lvl.desc}</p>
+            </div>
+            <div class="mt-3 pt-2 border-t border-pink-100/80 flex items-center justify-between text-xs font-bold text-pink-600">
+              <span>Hadiah: +${lvl.points} PTS</span>
+              <span>⭐⭐⭐</span>
+            </div>
+          </div>
+        `;
+
+        grid.innerHTML += cardHTML;
+      });
+    }
+
+    /* ==========================================================================
+       7. LEVEL CONTROLLER & MODAL RESULTS
+       ========================================================================== */
+    let currentActiveTimer = null; // Clear timer when leaving level
+
+    function clearActiveTimers() {
+      if (currentActiveTimer) {
+        clearInterval(currentActiveTimer);
+        currentActiveTimer = null;
+      }
+    }
+
+    function launchLevel(levelId) {
+      clearActiveTimers();
+      gameState.currentLevelId = levelId;
+      const lvl = CONFIG.levels.find(l => l.id === levelId);
+      
+      document.getElementById('gameLevelBadge').innerText = `Level ${lvl.id}`;
+      document.getElementById('gameTitle').innerText = lvl.title;
+      
+      switchView('game');
+
+      // Dispatch specific level builder function
+      const stage = document.getElementById('gameStage');
+      stage.innerHTML = ''; // Clear stage
+
+      switch(levelId) {
+        case 1: buildLevel1(stage); break;
+        case 2: buildLevel2(stage); break;
+        case 3: buildLevel3(stage); break;
+        case 4: buildLevel4(stage); break;
+        case 5: buildLevel5(stage); break;
+        case 6: buildLevel6(stage); break;
+        case 7: buildLevel7(stage); break;
+        case 8: buildLevel8(stage); break;
+        case 9: buildLevel9(stage); break;
+        case 10: buildLevel10(stage); break;
+        case 11: buildLevel11(stage); break;
+        case 12: buildLevel12(stage); break;
+      }
+    }
+
+    function restartCurrentLevel() {
+      playSFX('click');
+      launchLevel(gameState.currentLevelId);
+    }
+
+    function completeLevel(levelId, earnedStars = 3, bonusScore = 0) {
+      playSFX('win');
+      clearActiveTimers();
+      
+      const lvl = CONFIG.levels.find(l => l.id === levelId);
+      const totalEarned = (lvl ? lvl.points : 100) + bonusScore;
+
+      // Only add score once if first time completed
+      if (!gameState.completedLevels.includes(levelId)) {
+        gameState.completedLevels.push(levelId);
+        gameState.score += totalEarned;
+        gameState.stars += earnedStars;
+      }
+
+      saveState();
+
+      // Show Result Modal
+      document.getElementById('modalStars').innerText = earnedStars;
+      document.getElementById('modalScore').innerText = totalEarned;
+      
+      if (levelId === 12) {
+        document.getElementById('modalTitle').innerText = "HAPPY ENDING! 💖";
+        document.getElementById('modalBody').innerText = "Kamu sudah menyelesaikan seluruh petualangan Love Quest!";
+      } else {
+        document.getElementById('modalTitle').innerText = "Level Selesai! 🎉";
+        document.getElementById('modalBody').innerText = `Hebat banget Patem Sayangg! Kamu berhasil menyelesaikan ${lvl.title}.`;
+      }
+
+      document.getElementById('gameModal').classList.remove('hidden');
+      
+      // Trigger Confetti Burst
+      if (typeof confetti === 'function') {
+        confetti({ particleCount: 80, spread: 70, origin: { y: 0.6 } });
+      }
+    }
+
+    function closeModalAndNext() {
+      document.getElementById('gameModal').classList.add('hidden');
+      playSFX('click');
+      
+      // Check next level
+      const nextId = gameState.currentLevelId + 1;
+      if (nextId <= CONFIG.levels.length) {
+        launchLevel(nextId);
+      } else {
+        switchView('worldMap');
+      }
+    }
+
+    /* ==========================================================================
+       8. LEVEL 1: LOVE QUIZ (15 Questions with Single Card View)
+       ========================================================================== */
+    function buildLevel1(stage) {
+      let qIndex = 0;
+      let scoreCount = 0;
+
+      function renderQuestion() {
+        const qData = CONFIG.quizQuestions[qIndex];
+        const total = CONFIG.quizQuestions.length;
+
+        stage.innerHTML = `
+          <div class="w-full max-w-md bg-white rounded-2xl p-5 shadow-sm border border-pink-200 text-center">
+            <div class="flex justify-between items-center text-xs font-bold text-pink-500 mb-3">
+              <span>Pertanyaan ${qIndex + 1} dari ${total}</span>
+              <span>Skor: ${scoreCount}</span>
+            </div>
+            
+            <div class="w-full bg-pink-100 h-2 rounded-full mb-4">
+              <div class="bg-pink-500 h-2 rounded-full transition-all duration-300" style="width: ${((qIndex+1)/total)*100}%"></div>
+            </div>
+
+            <h3 class="font-fredoka text-lg font-bold text-gray-800 mb-4">${qData.q}</h3>
+
+            <div class="space-y-2 mb-4" id="quizOpts">
+              ${qData.options.map((opt, idx) => `
+                <button onclick="checkQuizAns(${idx})" class="w-full text-left bg-pink-50 hover:bg-pink-100 text-pink-900 border border-pink-200 font-semibold py-2.5 px-4 rounded-xl text-sm transition">
+                  ${String.fromCharCode(65 + idx)}. ${opt}
+                </button>
+              `).join('')}
+            </div>
+
+            <div id="quizFeedback" class="hidden rounded-xl p-3 text-xs font-bold mb-3"></div>
+          </div>
+        `;
+      }
+
+      window.checkQuizAns = function(selectedIdx) {
+        const qData = CONFIG.quizQuestions[qIndex];
+        const feedback = document.getElementById('quizFeedback');
+        const opts = document.getElementById('quizOpts').children;
+
+        // Disable options
+        for(let btn of opts) btn.disabled = true;
+
+        if (selectedIdx === qData.a) {
+          playSFX('correct');
+          scoreCount += 10;
+          gameState.streak++;
+          opts[selectedIdx].className = "w-full text-left bg-emerald-100 border-2 border-emerald-400 text-emerald-800 font-bold py-2.5 px-4 rounded-xl text-sm";
+          feedback.className = "bg-emerald-50 text-emerald-700 border border-emerald-200 rounded-xl p-3 text-xs font-bold mb-3";
+          feedback.innerHTML = `✨ Benar! ${qData.trivia}`;
+        } else {
+          playSFX('wrong');
+          gameState.streak = 0;
+          opts[selectedIdx].className = "w-full text-left bg-rose-100 border-2 border-rose-400 text-rose-800 font-bold py-2.5 px-4 rounded-xl text-sm";
+          opts[qData.a].className = "w-full text-left bg-emerald-100 border border-emerald-400 text-emerald-800 font-bold py-2.5 px-4 rounded-xl text-sm";
+          feedback.className = "bg-rose-50 text-rose-700 border border-rose-200 rounded-xl p-3 text-xs font-bold mb-3";
+          feedback.innerHTML = `😅 Hampir benar! Jawaban terbaik: ${qData.options[qData.a]}. ${qData.trivia}`;
+        }
+
+        feedback.classList.remove('hidden');
+        updateGlobalUI();
+
+        setTimeout(() => {
+          qIndex++;
+          if (qIndex < CONFIG.quizQuestions.length) {
+            renderQuestion();
+          } else {
+            completeLevel(1, 3, scoreCount);
+          }
+        }, 1800);
+      };
+
+      renderQuestion();
+    }
+
+    /* ==========================================================================
+       9. LEVEL 2: MEMORY MATCH CARD GAME (16 Cards)
+       ========================================================================== */
+    function buildLevel2(stage) {
+      const symbols = ['💖', '💌', '🌸', '🎁', '🧸', '🧋', '👑', '⭐'];
+      let cards = [...symbols, ...symbols].sort(() => Math.random() - 0.5);
+      
+      let flippedCards = [];
+      let matchedPairs = 0;
+      let moves = 0;
+
+      stage.innerHTML = `
+        <div class="w-full max-w-md text-center">
+          <div class="flex justify-between items-center text-xs font-bold text-pink-600 mb-3 px-2">
+            <span>Langkah: <span id="memMoves">0</span></span>
+            <span>Pasangan: <span id="memPairs">0</span> / 8</span>
+          </div>
+
+          <div class="grid grid-cols-4 gap-2.5 sm:gap-3" id="memGrid">
+            ${cards.map((sym, idx) => `
+              <div onclick="flipMemoryCard(${idx})" class="flip-card h-20 sm:h-24 cursor-pointer" id="memCard-${idx}">
+                <div class="flip-card-inner">
+                  <div class="flip-card-front bg-gradient-to-tr from-pink-300 to-rose-400 flex items-center justify-center text-white text-2xl font-bold shadow rounded-xl border-2 border-white">
+                    💕
+                  </div>
+                  <div class="flip-card-back bg-white flex items-center justify-center text-3xl shadow rounded-xl border-2 border-pink-300">
+                    ${sym}
+                  </div>
+                </div>
+              </div>
+            `).join('')}
+          </div>
+        </div>
+      `;
+
+      window.flipMemoryCard = function(idx) {
+        const cardElem = document.getElementById(`memCard-${idx}`);
+        if (cardElem.classList.contains('flipped') || flippedCards.length >= 2) return;
+
+        playSFX('click');
+        cardElem.classList.add('flipped');
+        flippedCards.push({ idx, symbol: cards[idx], elem: cardElem });
+
+        if (flippedCards.length === 2) {
+          moves++;
+          document.getElementById('memMoves').innerText = moves;
+
+          const [c1, c2] = flippedCards;
+          if (c1.symbol === c2.symbol) {
+            playSFX('correct');
+            matchedPairs++;
+            document.getElementById('memPairs').innerText = matchedPairs;
+            flippedCards = [];
+
+            if (matchedPairs === symbols.length) {
+              setTimeout(() => completeLevel(2, moves < 15 ? 3 : 2, 50), 600);
+            }
+          } else {
+            playSFX('wrong');
+            setTimeout(() => {
+              c1.elem.classList.remove('flipped');
+              c2.elem.classList.remove('flipped');
+              flippedCards = [];
+            }, 900);
+          }
+        }
+      };
+    }
+
+    /* ==========================================================================
+       10. LEVEL 3: HEART SLIDING PUZZLE (Always Solvable 3x3)
+       ========================================================================== */
+    function buildLevel3(stage) {
+      // Numbers 1-8 and empty slot 0
+      let tiles = [1, 2, 3, 4, 5, 6, 7, 0, 8]; // Guaranteed solvable 1-swap away for fun
+      let moves = 0;
+
+      function renderPuzzle() {
+        stage.innerHTML = `
+          <div class="w-full max-w-xs text-center">
+            <div class="text-xs font-bold text-pink-600 mb-3">
+              Langkah: <span id="puzzleMoves">${moves}</span> | Urutkan angka 1 sampai 8!
+            </div>
+
+            <div class="grid grid-cols-3 gap-2 bg-pink-100 p-3 rounded-2xl border-2 border-pink-300 shadow-inner">
+              ${tiles.map((num, idx) => `
+                <button onclick="moveTile(${idx})" class="h-20 sm:h-24 rounded-xl text-2xl font-fredoka font-bold transition flex items-center justify-center ${
+                  num === 0 ? 'bg-pink-200/40 border-2 border-dashed border-pink-300' : 'bg-gradient-to-tr from-pink-400 to-rose-500 text-white shadow-md active:scale-95 border-2 border-white'
+                }">
+                  ${num !== 0 ? num : ''}
+                </button>
+              `).join('')}
+            </div>
+            
+            <button onclick="hintPuzzle()" class="mt-3 text-xs text-pink-600 underline font-semibold">
+              Butuh Bantuan? (Auto-Solve)
+            </button>
+          </div>
+        `;
+      }
+
+      window.moveTile = function(idx) {
+        const emptyIdx = tiles.indexOf(0);
+        // Valid moves: adjacent row or col
+        const validMoves = [
+          idx - 1 >= 0 && idx % 3 !== 0 ? idx - 1 : -1,
+          idx + 1 < 9 && idx % 3 !== 2 ? idx + 1 : -1,
+          idx - 3 >= 0 ? idx - 3 : -1,
+          idx + 3 < 9 ? idx + 3 : -1
+        ];
+
+        if (validMoves.includes(emptyIdx)) {
+          playSFX('click');
+          tiles[emptyIdx] = tiles[idx];
+          tiles[idx] = 0;
+          moves++;
+          renderPuzzle();
+
+          // Check win condition [1, 2, 3, 4, 5, 6, 7, 8, 0]
+          if (tiles.join('') === '123456780') {
+            setTimeout(() => completeLevel(3, 3, 100), 500);
+          }
+        }
+      };
+
+      window.hintPuzzle = function() {
+        tiles = [1, 2, 3, 4, 5, 6, 7, 8, 0];
+        renderPuzzle();
+        setTimeout(() => completeLevel(3, 2, 20), 500);
+      };
+
+      renderPuzzle();
+    }
+
+    /* ==========================================================================
+       11. LEVEL 4: CATCH THE HEARTS ARCADE GAME (Canvas Based)
+       ========================================================================== */
+    function buildLevel4(stage) {
+      stage.innerHTML = `
+        <div class="w-full max-w-md text-center">
+          <div class="flex justify-between items-center text-xs font-bold text-pink-600 mb-2">
+            <span>Skor: <span id="catchScore">0</span> / 15</span>
+            <span>Waktu: <span id="catchTimer">30</span>s</span>
+          </div>
+          <canvas id="arcadeCanvas" width="320" height="320" class="bg-gradient-to-b from-pink-50 to-pink-100 border-2 border-pink-300 rounded-2xl shadow-inner mx-auto mb-3"></canvas>
+          <div class="flex justify-center space-x-4">
+            <button id="btnLeft" class="bg-pink-400 active:bg-pink-600 text-white font-bold py-3 px-8 rounded-2xl text-xl shadow-md">👈</button>
+            <button id="btnRight" class="bg-pink-400 active:bg-pink-600 text-white font-bold py-3 px-8 rounded-2xl text-xl shadow-md">👉</button>
+          </div>
+        </div>
+      `;
+
+      const canvas = document.getElementById('arcadeCanvas');
+      const ctx = canvas.getContext('2d');
+      
+      let basketX = 135;
+      let score = 0;
+      let timeLeft = 30;
+      let items = [];
+
+      // Spawn items
+      function spawnItem() {
+        const types = ['heart', 'heart', 'gold', 'bomb'];
+        const type = types[Math.floor(Math.random() * types.length)];
+        items.push({
+          x: Math.random() * (canvas.width - 25),
+          y: 0,
+          speed: 2 + Math.random() * 2,
+          type
+        });
+      }
+
+      const spawnInterval = setInterval(spawnItem, 800);
+      
+      currentActiveTimer = setInterval(() => {
+        timeLeft--;
+        document.getElementById('catchTimer').innerText = timeLeft;
+        if (timeLeft <= 0) {
+          clearInterval(spawnInterval);
+          clearActiveTimers();
+          if (score >= 12) {
+            completeLevel(4, 3, score * 10);
+          } else {
+            alert(`Yah, skor kamu ${score}. Kumpulkan minimal 12 hati ya! Coba lagi!`);
+            restartCurrentLevel();
+          }
+        }
+      }, 1000);
+
+      // Input listeners
+      let leftPressed = false;
+      let rightPressed = false;
+
+      document.getElementById('btnLeft').ontouchstart = () => leftPressed = true;
+      document.getElementById('btnLeft').ontouchend = () => leftPressed = false;
+      document.getElementById('btnLeft').onmousedown = () => leftPressed = true;
+      document.getElementById('btnLeft').onmouseup = () => leftPressed = false;
+
+      document.getElementById('btnRight').ontouchstart = () => rightPressed = true;
+      document.getElementById('btnRight').ontouchend = () => rightPressed = false;
+      document.getElementById('btnRight').onmousedown = () => rightPressed = true;
+      document.getElementById('btnRight').onmouseup = () => rightPressed = false;
+
+      function loop() {
+        if (!document.getElementById('arcadeCanvas')) return; // Exit if unmounted
+
+        ctx.clearRect(0, 0, canvas.width, canvas.height);
+
+        // Move basket
+        if (leftPressed && basketX > 0) basketX -= 5;
+        if (rightPressed && basketX < canvas.width - 50) basketX += 5;
+
+        // Draw Basket
+        ctx.fillStyle = '#FF1493';
+        ctx.font = '30px serif';
+        ctx.fillText('🧺', basketX, canvas.height - 10);
+
+        // Draw & Update Items
+        for (let i = items.length - 1; i >= 0; i--) {
+          const item = items[i];
+          item.y += item.speed;
+
+          let emoji = '💖';
+          if (item.type === 'gold') emoji = '⭐';
+          if (item.type === 'bomb') emoji = '💣';
+
+          ctx.fillText(emoji, item.x, item.y);
+
+          // Collision Check
+          if (item.y >= canvas.height - 35 && item.x >= basketX - 15 && item.x <= basketX + 45) {
+            if (item.type === 'heart') { score += 1; playSFX('click'); }
+            else if (item.type === 'gold') { score += 3; playSFX('correct'); }
+            else if (item.type === 'bomb') { score = Math.max(0, score - 2); playSFX('wrong'); }
+
+            document.getElementById('catchScore').innerText = score;
+            items.splice(i, 1);
+
+            if (score >= 15) {
+              clearInterval(spawnInterval);
+              clearActiveTimers();
+              completeLevel(4, 3, 100);
+              return;
+            }
+          } else if (item.y > canvas.height) {
+            items.splice(i, 1);
+          }
+        }
+
+        requestAnimationFrame(loop);
+      }
+
+      loop();
+    }
+
+    /* ==========================================================================
+       12. LEVEL 5: FIND MY LOVE (Hidden Objects in Romantic Room)
+       ========================================================================== */
+    function buildLevel5(stage) {
+      const targetItems = [
+        { id: 'ring', name: 'Cincin Cinta', icon: '💍', top: '25%', left: '20%' },
+        { id: 'letter', name: 'Surat Rahasia', icon: '💌', top: '70%', left: '80%' },
+        { id: 'bear', name: 'Boneka Beruang', icon: '🧸', top: '65%', left: '25%' },
+        { id: 'rose', name: 'Bunga Mawar', icon: '🌹', top: '35%', left: '75%' },
+        { id: 'star', name: 'Bintang Emas', icon: '⭐', top: '15%', left: '50%' }
+      ];
+
+      let found = [];
+
+      stage.innerHTML = `
+        <div class="w-full max-w-md text-center">
+          <p class="text-xs text-gray-600 mb-2">Temukan 5 benda romantis tersembunyi di kamar di bawah ini!</p>
+
+          <div class="flex flex-wrap justify-center gap-2 mb-3" id="findList">
+            ${targetItems.map(item => `
+              <span id="findTag-${item.id}" class="bg-pink-100 text-pink-700 text-xs font-bold px-2.5 py-1 rounded-full border border-pink-200">
+                ${item.icon} ${item.name}
+              </span>
+            `).join('')}
+          </div>
+
+          <div class="relative w-full h-72 bg-gradient-to-tr from-pink-200 via-purple-100 to-rose-200 rounded-2xl border-2 border-pink-300 overflow-hidden shadow-inner">
+            <!-- Background Decorative Elements -->
+            <div class="absolute bottom-0 w-full h-16 bg-pink-300/40"></div>
+            <div class="absolute top-10 left-6 text-4xl opacity-30">🖼️</div>
+            <div class="absolute top-8 right-8 text-4xl opacity-30">🪟</div>
+            <div class="absolute bottom-4 left-1/3 text-6xl opacity-30">🛋️</div>
+
+            <!-- Clickable Hidden Objects -->
+            ${targetItems.map(item => `
+              <button onclick="clickHiddenObject('${item.id}')" style="top: ${item.top}; left: ${item.left};" class="absolute text-2xl transform hover:scale-125 transition duration-150 active:scale-95 focus:outline-none">
+                ${item.icon}
+              </button>
+            `).join('')}
+          </div>
+        </div>
+      `;
+
+      window.clickHiddenObject = function(id) {
+        if (found.includes(id)) return;
+
+        playSFX('correct');
+        found.push(id);
+
+        const tag = document.getElementById(`findTag-${id}`);
+        if (tag) {
+          tag.className = "bg-emerald-500 text-white text-xs font-bold px-2.5 py-1 rounded-full shadow-sm line-through";
+        }
+
+        if (found.length === targetItems.length) {
+          setTimeout(() => completeLevel(5, 3, 100), 500);
+        }
+      };
+    }
+
+    /* ==========================================================================
+       13. LEVEL 6: GUESS THE EMOJI (12 Romantic Emoji Riddles)
+       ========================================================================== */
+    function buildLevel6(stage) {
+      let eIdx = 0;
+
+      function renderEmojiPuzzle() {
+        const puzzle = CONFIG.emojiPuzzles[eIdx];
+
+        stage.innerHTML = `
+          <div class="w-full max-w-xs text-center bg-white p-5 rounded-2xl shadow-sm border border-pink-200">
+            <span class="text-xs font-bold text-pink-500">Teka-teki ${eIdx + 1} dari ${CONFIG.emojiPuzzles.length}</span>
+            <div class="text-4xl my-4 tracking-widest bg-pink-50 py-3 rounded-xl border border-pink-100">${puzzle.emojis}</div>
+
+            <p class="text-xs text-gray-500 mb-3">Petunjuk: <span class="italic text-pink-600 font-semibold">${puzzle.hint}</span></p>
+
+            <input type="text" id="emojiInput" placeholder="Ketik jawaban di sini..." class="w-full text-center bg-pink-50 border border-pink-300 rounded-xl py-2 px-3 text-sm focus:outline-none focus:ring-2 focus:ring-pink-400 mb-3" />
+
+            <button onclick="submitEmojiAns()" class="w-full bg-gradient-to-r from-pink-400 to-rose-500 text-white font-bold py-2 rounded-xl text-sm shadow hover:opacity-90 transition">
+              Kirim Jawaban ✨
+            </button>
+          </div>
+        `;
+
+        document.getElementById('emojiInput').addEventListener('keypress', (e) => {
+          if (e.key === 'Enter') submitEmojiAns();
+        });
+      }
+
+      window.submitEmojiAns = function() {
+        const input = document.getElementById('emojiInput').value.trim().toLowerCase();
+        const puzzle = CONFIG.emojiPuzzles[eIdx];
+
+        if (input.includes(puzzle.answer) || puzzle.answer.includes(input) && input.length > 2) {
+          playSFX('correct');
+          eIdx++;
+          if (eIdx < CONFIG.emojiPuzzles.length) {
+            renderEmojiPuzzle();
+          } else {
+            completeLevel(6, 3, 100);
+          }
+        } else {
+          playSFX('wrong');
+          alert(`Hampir tepat! Jawaban yang dimaksud adalah: "${puzzle.answer}". Yuk coba lagi!`);
+        }
+      };
+
+      renderEmojiPuzzle();
+    }
+
+    /* ==========================================================================
+       14. LEVEL 7: SPEED QUIZ (10 Rapid Questions with Decreasing Bar)
+       ========================================================================== */
+    function buildLevel7(stage) {
+      let qIndex = 0;
+      let scoreCount = 0;
+      let timerWidth = 100;
+      let interval = null;
+
+      function renderSpeedQ() {
+        if (qIndex >= CONFIG.speedQuizData.length) {
+          clearActiveTimers();
+          completeLevel(7, 3, scoreCount);
+          return;
+        }
+
+        const data = CONFIG.speedQuizData[qIndex];
+        timerWidth = 100;
+
+        stage.innerHTML = `
+          <div class="w-full max-w-sm text-center bg-white p-5 rounded-2xl shadow-sm border border-pink-200">
+            <div class="flex justify-between text-xs font-bold text-pink-600 mb-2">
+              <span>Soal ${qIndex + 1}/${CONFIG.speedQuizData.length}</span>
+              <span>⚡ Cepat!</span>
+            </div>
+
+            <div class="w-full bg-gray-200 h-2.5 rounded-full mb-4 overflow-hidden">
+              <div id="speedBar" class="bg-rose-500 h-2.5 rounded-full transition-all duration-100" style="width: 100%"></div>
+            </div>
+
+            <h3 class="font-fredoka text-base font-bold text-gray-800 mb-4">${data.q}</h3>
+
+            <div class="space-y-2">
+              ${data.a.map((opt, idx) => `
+                <button onclick="ansSpeed(${idx})" class="w-full bg-pink-50 hover:bg-pink-100 text-pink-900 border border-pink-200 font-bold py-2.5 px-4 rounded-xl text-sm transition">
+                  ${opt}
+                </button>
+              `).join('')}
+            </div>
+          </div>
+        `;
+
+        clearActiveTimers();
+        interval = setInterval(() => {
+          timerWidth -= 4;
+          const bar = document.getElementById('speedBar');
+          if (bar) bar.style.width = `${timerWidth}%`;
+
+          if (timerWidth <= 0) {
+            clearActiveTimers();
+            playSFX('wrong');
+            qIndex++;
+            renderSpeedQ();
+          }
+        }, 150);
+        currentActiveTimer = interval;
+      }
+
+      window.ansSpeed = function(idx) {
+        clearActiveTimers();
+        const data = CONFIG.speedQuizData[qIndex];
+        if (idx === data.correct) {
+          playSFX('correct');
+          scoreCount += 20;
+        } else {
+          playSFX('wrong');
+        }
+        qIndex++;
+        renderSpeedQ();
+      };
+
+      renderSpeedQ();
+    }
+
+    /* ==========================================================================
+       15. LEVEL 8: LOVE WORD SCRAMBLE
+       ========================================================================== */
+    function buildLevel8(stage) {
+      let wIdx = 0;
+
+      function scramble(str) {
+        return str.split('').sort(() => Math.random() - 0.5).join('');
+      }
+
+      function renderScramble() {
+        const item = CONFIG.scrambleWords[wIdx];
+        const scrambled = scramble(item.word);
+
+        stage.innerHTML = `
+          <div class="w-full max-w-xs text-center bg-white p-5 rounded-2xl shadow-sm border border-pink-200">
+            <span class="text-xs font-bold text-pink-500">Kata ${wIdx + 1} dari ${CONFIG.scrambleWords.length}</span>
+            <div class="font-fredoka text-3xl text-rose-600 font-bold tracking-widest my-4 bg-pink-50 py-3 rounded-xl border border-pink-200">${scrambled}</div>
+
+            <p class="text-xs text-gray-500 mb-3">Clue: <span class="italic text-pink-600 font-semibold">${item.hint}</span></p>
+
+            <input type="text" id="scrambleInput" placeholder="Ketik kata yang benar..." class="w-full text-center uppercase bg-pink-50 border border-pink-300 rounded-xl py-2 px-3 text-sm focus:outline-none focus:ring-2 focus:ring-pink-400 mb-3" />
+
+            <button onclick="submitScramble()" class="w-full bg-gradient-to-r from-pink-400 to-rose-500 text-white font-bold py-2 rounded-xl text-sm shadow hover:opacity-90 transition">
+              Jawab ✨
+            </button>
+          </div>
+        `;
+
+        document.getElementById('scrambleInput').addEventListener('keypress', (e) => {
+          if (e.key === 'Enter') submitScramble();
+        });
+      }
+
+      window.submitScramble = function() {
+        const input = document.getElementById('scrambleInput').value.trim().toUpperCase();
+        const item = CONFIG.scrambleWords[wIdx];
+
+        if (input === item.word) {
+          playSFX('correct');
+          wIdx++;
+          if (wIdx < CONFIG.scrambleWords.length) {
+            renderScramble();
+          } else {
+            completeLevel(8, 3, 100);
+          }
+        } else {
+          playSFX('wrong');
+          alert('Ups, susunan katanya belum tepat! Coba lagi ya.');
+        }
+      };
+
+      renderScramble();
+    }
+
+    /* ==========================================================================
+       16. LEVEL 9: TRUTH OR LOVE (Interactive Preferences)
+       ========================================================================== */
+    function buildLevel9(stage) {
+      const prompts = [
+        { q: "Pilih satu momen kencan impian kita:", a: "Jalan santai malam sambil makan es krim", b: "Nonton film romantis di rumah berdua", resp: "Pilihan yang indah! Apapun pilihannya, yang penting bisa berdua bersamamu 💕" },
+        { q: "Kalau aku lagi cape atau cemberut, kamu mau...", a: "Kasih pelukan lama tanpa ngomong apa-apa", b: "Beliin boba & snack kesukaan aku", resp: "Aww manis banget! Perhatian kecil kayak gini yang selalu bikin makin sayang 💖" },
+        { q: "Kenangan paling manis buat kamu adalah...", a: "Momen ngobrol jujur dari hati ke hati", b: "Momen ketawa lepas bareng karena hal konyol", resp: "Setiap kenangan bersamamu selalu tersimpan rapi di hatiku!" }
+      ];
+
+      let pIdx = 0;
+
+      function renderPrompt() {
+        const p = prompts[pIdx];
+
+        stage.innerHTML = `
+          <div class="w-full max-w-md text-center bg-white p-5 rounded-2xl shadow-sm border border-pink-200">
+            <span class="text-xs font-bold text-pink-500">Pertanyaan ${pIdx + 1} dari ${prompts.length}</span>
+            <h3 class="font-fredoka text-base font-bold text-gray-800 my-4">${p.q}</h3>
+
+            <div class="space-y-3 mb-4">
+              <button onclick="pickChoice('a')" class="w-full bg-pink-50 hover:bg-pink-100 text-pink-900 border border-pink-200 font-bold py-3 px-4 rounded-xl text-sm transition">
+                A. ${p.a}
+              </button>
+              <button onclick="pickChoice('b')" class="w-full bg-pink-50 hover:bg-pink-100 text-pink-900 border border-pink-200 font-bold py-3 px-4 rounded-xl text-sm transition">
+                B. ${p.b}
+              </button>
+            </div>
+
+            <div id="choiceResp" class="hidden bg-pink-100 text-pink-800 p-3 rounded-xl text-xs font-bold"></div>
+          </div>
+        `;
+      }
+
+      window.pickChoice = function(type) {
+        playSFX('correct');
+        const p = prompts[pIdx];
+        const respBox = document.getElementById('choiceResp');
+        respBox.innerText = p.resp;
+        respBox.classList.remove('hidden');
+
+        setTimeout(() => {
+          pIdx++;
+          if (pIdx < prompts.length) {
+            renderPrompt();
+          } else {
+            completeLevel(9, 3, 100);
+          }
+        }, 2000);
+      };
+
+      renderPrompt();
+    }
+
+    /* ==========================================================================
+       17. LEVEL 10: CHOOSE OUR STORY (Branching Narrative)
+       ========================================================================== */
+    function buildLevel10(stage) {
+      function renderStoryNode(title, text, options) {
+        stage.innerHTML = `
+          <div class="w-full max-w-md text-center bg-white p-5 rounded-2xl shadow-sm border border-pink-200">
+            <span class="text-xs font-bold text-pink-500 uppercase tracking-wider">Cerita Kencan Impian</span>
+            <h3 class="font-fredoka text-lg font-bold text-rose-600 my-2">${title}</h3>
+            <p class="text-xs sm:text-sm text-gray-600 mb-6 leading-relaxed">${text}</p>
+
+            <div class="space-y-2">
+              ${options.map(opt => `
+                <button onclick="${opt.action}" class="w-full bg-gradient-to-r from-pink-400 to-rose-400 text-white font-bold py-2.5 px-4 rounded-xl text-sm shadow hover:opacity-90 transition">
+                  ${opt.label}
+                </button>
+              `).join('')}
+            </div>
+          </div>
+        `;
+      }
+
+      window.storyStart = function() {
+        renderStoryNode("Akhir Pekan Bersama", "Hari Sabtu ini cuaca sangat cerah! Pacarmu mengajak kamu pergi jalan-jalan. Ke mana kamu ingin pergi?", [
+          { label: "🌳 Piknik Santai di Taman Bunga", action: "storyPark()" },
+          { label: "☕ Santai di Cafe Kekinian Sambil Ngobrol", action: "storyCafe()" }
+        ]);
+      };
+
+      window.storyPark = function() {
+        renderStoryNode("Piknik di Taman Bunga", "Kalian duduk di atas tikar piknik di bawah pohon rindang. Angin berembus sejuk. Apa yang ingin kamu lakukan?", [
+          { label: "🎨 Menggambar sketsa wajah berdua", action: "storyEnding('Bahagia di Taman')" },
+          { label: "🎧 Mendengarkan musik favorit berdua", action: "storyEnding('Harmoni Cinta')" }
+        ]);
+      };
+
+      window.storyCafe = function() {
+        renderStoryNode("Kafe Manis", "Kalian memesan minuman boba dan kue manis. Suasana kafe sangat hangat dan estetik. Apa topik obrolan kalian?", [
+          { label: "✈️ Rencana liburan impian kita berikutnya", action: "storyEnding('Mimpi Bersama')" },
+          { label: "📸 Foto-foto lucu buat kenang-kenangan", action: "storyEnding('Momen Manis')" }
+        ]);
+      };
+
+      window.storyEnding = function(endingTitle) {
+        playSFX('win');
+        renderStoryNode(`Ending: ${endingTitle} 💖`, "Hari kencan menutup dengan senyuman hangat di wajah kalian berdua. Momen sederhana ini akan selalu tersimpan indah!", [
+          { label: "Selesaikan Cerita ✨", action: "completeLevel(10, 3, 150)" }
+        ]);
+      };
+
+      storyStart();
+    }
+
+    /* ==========================================================================
+       18. LEVEL 11: SECRET CODE
+       ========================================================================== */
+    function buildLevel11(stage) {
+      stage.innerHTML = `
+        <div class="w-full max-w-xs text-center bg-white p-5 rounded-2xl shadow-sm border border-pink-200">
+          <div class="text-4xl mb-2">🔐</div>
+          <h3 class="font-fredoka text-lg font-bold text-gray-800 mb-2">Kode Rahasia Cinta</h3>
+          <p class="text-xs text-gray-500 mb-4">Masukkan 4 digit kode rahasia untuk membuka gerbang hadiah terakhir!</p>
+
+          <div class="bg-pink-50 p-3 rounded-xl border border-pink-200 mb-4 text-left text-xs text-pink-800">
+            <p class="font-bold mb-1">💡 Clue Kode:</p>
+            <p>Kode default bawaan game ini adalah: <span class="font-bold underline text-rose-600">1234</span></p>
+          </div>
+
+          <input type="password" id="passcodeInput" maxlength="6" placeholder="Masukkan Kode..." class="w-full text-center font-fredoka text-xl tracking-widest bg-pink-50 border border-pink-300 rounded-xl py-2 px-3 focus:outline-none focus:ring-2 focus:ring-pink-400 mb-4" />
+
+          <button onclick="submitPasscode()" class="w-full bg-gradient-to-r from-pink-500 to-rose-500 text-white font-bold py-2.5 rounded-xl text-sm shadow hover:opacity-90 transition">
+            Buka Kunci 🗝️
+          </button>
+        </div>
+      `;
+
+      window.submitPasscode = function() {
+        const input = document.getElementById('passcodeInput').value.trim();
+        if (input === CONFIG.secretPasscode) {
+          playSFX('correct');
+          completeLevel(11, 3, 100);
+        } else {
+          playSFX('wrong');
+          alert('Kode rahasia salah sayang! Periksa petunjuknya ya.');
+        }
+      };
+    }
+
+    /* ==========================================================================
+       19. LEVEL 12: THE FINAL TREASURE (Chest Opening & Certificate)
+       ========================================================================== */
+    function buildLevel12(stage) {
+      stage.innerHTML = `
+        <div class="w-full max-w-md text-center">
+          <div id="chestContainer" class="cursor-pointer bounce-gentle my-6" onclick="openTreasureChest()">
+            <div class="text-8xl">🎁</div>
+            <p class="text-xs text-pink-600 font-bold mt-2">(Klik Peti Hadiah Untuk Membukanya!)</p>
+          </div>
+
+          <div id="treasureContent" class="hidden space-y-6 text-left">
+            <!-- Love Letter Card -->
+            <div class="bg-white rounded-2xl p-5 shadow-md border-2 border-pink-300 relative overflow-hidden">
+              <div class="absolute -top-6 -right-6 text-6xl opacity-10">💌</div>
+              <h3 class="font-romantic text-3xl text-rose-600 font-bold mb-3">Surat Rahasia Cinta</h3>
+              <p class="text-xs sm:text-sm text-gray-700 whitespace-pre-line leading-relaxed italic font-semibold">
+                ${CONFIG.finalLoveLetter}
+              </p>
+            </div>
+
+            <!-- Digital Certificate -->
+            <div class="bg-gradient-to-tr from-amber-50 via-white to-pink-50 rounded-2xl p-5 border-4 border-amber-300 shadow-xl text-center relative">
+              <div class="text-xs uppercase tracking-widest text-amber-600 font-bold mb-1">Sertifikat Penghargaan Cinta</div>
+              <h4 class="font-romantic text-4xl text-rose-600 font-bold my-1">My Favorite Person</h4>
+              <p class="text-xs text-gray-600">Sertifikat ini secara resmi dianugerahkan kepada:</p>
+              <div class="font-fredoka text-xl text-pink-700 font-bold my-2 text-rose-600 border-b border-pink-200 inline-block px-4 py-1">
+                ${CONFIG.partnerName}
+              </div>
+              <p class="text-[11px] text-gray-500 italic">Atas keberhasilan menyelesaikan seluruh rintangan dalam Love Quest dengan keimutan & kasih sayang tak terhingga.</p>
+            </div>
+
+            <!-- Photo Memory Gallery -->
+            <div>
+              <h4 class="font-fredoka text-base font-bold text-rose-600 mb-3 text-center">Galeri Kenangan Manis Kita 📸</h4>
+              <div class="grid grid-cols-2 gap-3">
+                ${CONFIG.galleryPhotos.map(p => `
+                  <div class="bg-white p-3 rounded-xl shadow-sm border border-pink-200 text-center">
+                    <div class="text-3xl mb-1">${p.emoji}</div>
+                    <div class="font-bold text-xs text-gray-800">${p.title}</div>
+                    <div class="text-[10px] text-gray-500">${p.desc}</div>
+                  </div>
+                `).join('')}
+              </div>
+            </div>
+
+            <button onclick="completeLevel(12, 3, 500)" class="w-full bg-gradient-to-r from-pink-500 via-rose-500 to-purple-600 text-white font-fredoka font-bold py-3 rounded-xl shadow-lg hover:opacity-90 transition text-sm">
+              AMBIL HADIAH KEMENANGAN AKHIR 👑
+            </button>
+          </div>
+        </div>
+      `;
+
+      window.openTreasureChest = function() {
+        playSFX('win');
+        document.getElementById('chestContainer').classList.add('hidden');
+        document.getElementById('treasureContent').classList.remove('hidden');
+
+        if (typeof confetti === 'function') {
+          confetti({ particleCount: 120, spread: 100, origin: { y: 0.5 } });
+        }
+      };
+    }
+
+    /* ==========================================================================
+       20. BONUS MINI-GAMES LAUNCHER
+       ========================================================================== */
+    function launchBonusGame(type) {
+      playSFX('click');
+      switchView('game');
+      document.getElementById('gameLevelBadge').innerText = "Bonus Mini-Game";
+      const stage = document.getElementById('gameStage');
+
+      if (type === 'wheel') {
+        document.getElementById('gameTitle').innerText = "Spin the Love Wheel";
+        stage.innerHTML = `
+          <div class="text-center">
+            <div id="wheelElem" class="w-56 h-56 rounded-full border-4 border-pink-400 bg-gradient-to-tr from-pink-200 via-purple-200 to-rose-200 flex items-center justify-center text-4xl shadow-xl mx-auto mb-4 transition-all duration-1000">
+              🎡
+            </div>
+            <p id="wheelResult" class="text-xs font-bold text-pink-700 min-h-[30px] mb-4">Tekan tombol untuk memutar roda!</p>
+            <button onclick="spinWheel()" class="bg-pink-500 text-white font-bold py-2 px-6 rounded-xl shadow hover:bg-pink-600 transition text-sm">
+              Putar Roda ✨
+            </button>
+          </div>
+        `;
+
+        window.spinWheel = function() {
+          playSFX('click');
+          const results = [
+            "Dapat pelukan hangat 10 detik! 🤗",
+            "Boleh minta 1 makanan kesukaan! 🧋",
+            "Pacar kamu wajib melucu sampai kamu ketawa! 😂",
+            "Klien kencan spesial minggu ini! 🎟️",
+            "Dapat bisikan kata-kata manis! 💖"
+          ];
+          const wheel = document.getElementById('wheelElem');
+          wheel.style.transform = `rotate(${1080 + Math.random() * 360}deg)`;
+
+          setTimeout(() => {
+            playSFX('win');
+            const res = results[Math.floor(Math.random() * results.length)];
+            document.getElementById('wheelResult').innerText = res;
+          }, 1000);
+        };
+
+      } else if (type === 'scratch') {
+        document.getElementById('gameTitle').innerText = "Scratch Card Rahasia";
+        stage.innerHTML = `
+          <div class="text-center">
+            <p class="text-xs text-gray-600 mb-3">Usap atau klik kartu di bawah untuk membuka pesan rahasia!</p>
+            <canvas id="scratchCanvas" width="260" height="140" class="border-2 border-pink-300 rounded-xl shadow mx-auto cursor-pointer"></canvas>
+          </div>
+        `;
+
+        const canvas = document.getElementById('scratchCanvas');
+        const ctx = canvas.getContext('2d');
+
+        // Draw secret message underneath
+        ctx.fillStyle = '#FFF0F5';
+        ctx.fillRect(0, 0, 260, 140);
+        ctx.fillStyle = '#FF1493';
+        ctx.font = 'bold 14px Nunito';
+        ctx.textAlign = 'center';
+        ctx.fillText('Patem Sayangg adalah', 130, 50);
+        ctx.fillText('Kebahagiaan Terbesarku! 💖', 130, 80);
+
+        // Overlay silver scratch layer
+        const imgData = ctx.getImageData(0, 0, 260, 140);
+        
+        ctx.fillStyle = '#D8A7B1';
+        ctx.fillRect(0, 0, 260, 140);
+        ctx.fillStyle = '#FFFFFF';
+        ctx.font = '12px Nunito';
+        ctx.fillText('Gores Di Sini ✨', 130, 75);
+
+        let isScratching = false;
+
+        function scratch(e) {
+          if (!isScratching) return;
+          const rect = canvas.getBoundingClientRect();
+          const x = (e.clientX || (e.touches && e.touches[0].clientX)) - rect.left;
+          const y = (e.clientY || (e.touches && e.touches[0].clientY)) - rect.top;
+
+          ctx.globalCompositeOperation = 'destination-out';
+          ctx.beginPath();
+          ctx.arc(x, y, 15, 0, Math.PI * 2);
+          ctx.fill();
+        }
+
+        canvas.onmousedown = () => isScratching = true;
+        canvas.onmouseup = () => isScratching = false;
+        canvas.onmousemove = scratch;
+        canvas.ontouchstart = () => isScratching = true;
+        canvas.ontouchend = () => isScratching = false;
+        canvas.ontouchmove = scratch;
+
+      } else if (type === 'tap') {
+        document.getElementById('gameTitle').innerText = "Tap the Hearts!";
+        let tapScore = 0;
+        let tapTime = 10;
+
+        stage.innerHTML = `
+          <div class="text-center">
+            <div class="flex justify-between text-xs font-bold text-pink-600 mb-2">
+              <span>Taps: <span id="tapCount">0</span></span>
+              <span>Waktu: <span id="tapTime">10</span>s</span>
+            </div>
+            <button id="tapBtn" onclick="registerTap()" class="w-40 h-40 bg-gradient-to-tr from-pink-400 to-rose-500 rounded-full text-6xl shadow-xl flex items-center justify-center mx-auto active:scale-90 transition transform border-4 border-white">
+              💖
+            </button>
+          </div>
+        `;
+
+        let timerStarted = false;
+        window.registerTap = function() {
+          playSFX('click');
+          tapScore++;
+          document.getElementById('tapCount').innerText = tapScore;
+
+          if (!timerStarted) {
+            timerStarted = true;
+            currentActiveTimer = setInterval(() => {
+              tapTime--;
+              document.getElementById('tapTime').innerText = tapTime;
+              if (tapTime <= 0) {
+                clearActiveTimers();
+                playSFX('win');
+                alert(`Luar biasa! Kamu berhasil mengetuk ${tapScore} kali dalam 10 detik! 🎉`);
+                switchView('bonusMenu');
+              }
+            }, 1000);
+          }
+        };
+
+      } else if (type === 'daily') {
+        document.getElementById('gameTitle').innerText = "Daily Love Note";
+        const quotes = [
+          "Kamu adalah alasan aku tersenyum tanpa alasan hari ini 🌸",
+          "Jangan lupa minum air putih & istirahat yang cukup ya sayang! 💕",
+          "Setiap hari bersamamu adalah petualangan terindah 💖",
+          "Semangat untuk hari ini Patem Sayangg! Aku selalu mendukungmu! ✨"
+        ];
+        const randomQuote = quotes[Math.floor(Math.random() * quotes.length)];
+
+        stage.innerHTML = `
+          <div class="text-center bg-white p-6 rounded-2xl border-2 border-pink-200 max-w-xs shadow-sm">
+            <div class="text-4xl mb-3">💌</div>
+            <p class="font-romantic text-2xl text-rose-600 font-bold mb-2">Pesan Manis Hari Ini</p>
+            <p class="text-xs text-gray-700 italic font-semibold leading-relaxed">"${randomQuote}"</p>
+          </div>
+        `;
+      }
+    }
+
+    /* ==========================================================================
+       21. BACKGROUND FLOATING PARTICLES GENERATOR
+       ========================================================================== */
+    function createFloatingParticles() {
+      const container = document.getElementById('particleContainer');
+      const particles = ['💖', '🌸', '✨', '⭐', '🎈'];
+
+      for (let i = 0; i < 15; i++) {
+        const p = document.createElement('div');
+        p.className = 'particle';
+        p.innerText = particles[Math.floor(Math.random() * particles.length)];
+        p.style.left = `${Math.random() * 100}%`;
+        p.style.animationDuration = `${8 + Math.random() * 8}s`;
+        p.style.animationDelay = `${Math.random() * 5}s`;
+        p.style.fontSize = `${14 + Math.random() * 16}px`;
+        container.appendChild(p);
+      }
+    }
+
+    /* ==========================================================================
+       22. INITIALIZATION ON WINDOW LOAD
+       ========================================================================== */
+    window.onload = function() {
+      createFloatingParticles();
+      loadState();
+      switchView('intro');
+    };
+  </script>
+</body>
+</html>
